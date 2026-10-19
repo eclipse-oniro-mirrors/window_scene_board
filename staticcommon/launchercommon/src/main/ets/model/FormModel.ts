@@ -1017,6 +1017,27 @@ export class FormModel {
     return true;
   }
 
+   /**
+   * 按布局项删除无有效 cardId 的无效卡片，并删除因此产生的空白页。
+   *
+   * 与 deleteFormByPosition 的区别是入参直接是布局项，供开机首次加载布局时主动清理使用，
+   * 不再依赖卡片所在页面被渲染的时机。
+   *
+   * @param {GridLayoutItemInfo} cardInLayout 布局中的卡片项
+   * @param {boolean} isOuter outer screen flag
+   */
+   public deleteInvalidCardByLayoutItem(cardInLayout: GridLayoutItemInfo, isOuter?: boolean): boolean {
+    if (CheckEmptyUtils.isEmpty(cardInLayout) || !this.isCardIdInvalid(cardInLayout.cardId ?? '')) {
+      return false;
+    }
+    log.showWarn(`deleteInvalidCardByLayoutItem, bundleName: ${cardInLayout.bundleName}, page: ${cardInLayout.page}` +
+      `, row: ${cardInLayout.row}, column: ${cardInLayout.column}, isOuter: ${isOuter}`);
+    this.mFormLayoutManager.deleteGridLayoutItemByPosition(cardInLayout.page ?? -1, cardInLayout.row ?? 0,
+      cardInLayout.column ?? 0, BusinessType.BUSINESS_CARD, true, isOuter);
+    this.handleEventAfterFormDeleteInLayout(cardInLayout.cardId ?? '', cardInLayout.page ?? -1, false, isOuter);
+    return true;
+  }
+
   public deleteFormCacheByCardItem(cardInfo: CardItemInfo, isOuter?: boolean): void {
     if (CheckEmptyUtils.isEmpty(cardInfo)) {
       log.showError('deleteFormCacheByCardItem invalid parameter');
