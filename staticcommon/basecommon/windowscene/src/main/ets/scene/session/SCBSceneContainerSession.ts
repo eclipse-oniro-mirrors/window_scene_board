@@ -4177,26 +4177,7 @@ export class SCBSceneContainerSession {
       this.exitToSmallFolder(iconRectInfo);
       return;
     }
-    if (!isTransitionOut) {
-      // if (this.companionIconInfo?.iconId && iconRectInfo) {
-      //   if (startType === StartType.CARD) {
-      //     this.startCard(iconRectInfo, isTransitionOut);
-      //     return;
-      //   }
-      //   let isAdaptiveIcon = IconResourceManager.getInstance().isAdaptiveIcon(this.companionIconInfo);
-      //   log.showWarn(`onTransitionActiveToRect, bundleName:${this.companionIconInfo?.bundleName}, ` +
-      //     `isAdaptive:${isAdaptiveIcon}`);
-      //   if (!isAdaptiveIcon) {
-      //     this.startCard(iconRectInfo, isTransitionOut);
-      //     return;
-      //   }
-      //   this.startApp(iconRectInfo, isTransitionOut);
-      //   return;
-      // }
-      // this.startOther();
-      this.onTransitionInactive();
-      return;
-    }
+
     if (this.companionIconInfo?.iconId && iconRectInfo) {
       if (startType === StartType.CARD) {
         this.startCard(iconRectInfo, isTransitionOut);
