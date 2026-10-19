@@ -2294,6 +2294,32 @@ export class PageDesktopViewModel extends BaseViewModel implements IPageDesktopV
     }
     Trace.end(Trace.CORE_METHOD_LIGHT_PAGING_FILTERING + sceneMsg);
   }
+  
+    /**
+   * 首次加载布局时清理无效卡片。
+   *
+   * 无有效 cardId 的卡片此前只在卡片所在页面被渲染（FormItemRelative 构建）或收到卡片框架的
+   * 删除事件时才会被删除，其占用的空白页也随之只在“该页被渲染”时才会被清理。
+   * 若该页在开机阶段未被构建（例如 swiper 未预加载到该页），无效卡片与空白页会一直残留，
+   * 表现为桌面页数与指示器数量错误、翻页异常。这里在布局首次初始化时主动清理，不再依赖渲染时机。
+   *
+   * @param isOuter 是否为外屏
+   */
+    private clearInvalidCardsOnInitLayout(isOuter?: boolean): void {
+      const layoutInfo: GridLayoutItemInfo[] = this.mLauncherLayoutCacheManager.getAllGridLayoutItemList(
+        BusinessType.BUSINESS_BASIC_DESKTOP, isOuter);
+      for (let i = 0; i < layoutInfo.length; i++) {
+        if (layoutInfo[i].typeId !== CommonConstants.TYPE_CARD ||
+          !this.mFormModel.isCardIdInvalid(layoutInfo[i].cardId ?? '')) {
+          continue;
+        }
+        log.showWarn(TAG,
+          'clearInvalidCardsOnInitLayout invalid card bundle:%{public}s page:%{public}d row:%{public}d column:%{public}d',
+          layoutInfo[i].bundleName, layoutInfo[i].page, layoutInfo[i].row, layoutInfo[i].column);
+        // 内部会按位置删除布局项，并触发空白页删除
+        this.mFormModel.deleteInvalidCardByLayoutItem(layoutInfo[i], isOuter);
+      }
+    }
 
   /**
    * refresh page
@@ -2309,6 +2335,10 @@ export class PageDesktopViewModel extends BaseViewModel implements IPageDesktopV
     };
     let appListInfo: GridLayoutItemInfo[] = new Array<GridLayoutItemInfo>();
     this.getAndSetLayoutInfo(bundleInfoList, undefined, isOuter);
+    if (!this.mIsFinishedInitLayout) {
+      // 首次加载布局时主动清理无效卡片，避免空白页的删除依赖卡片所在页面被渲染
+      this.clearInvalidCardsOnInitLayout(isOuter);
+    }
     LightOutdoorDesktopViewModel.getInstance().appendAddIconForLightOutdoorMode(false);
     const layoutInfo: GridLayoutItemInfo[] = this.mLauncherLayoutCacheManager.getAllGridLayoutItemList(
       BusinessType.BUSINESS_BASIC_DESKTOP, isOuter);
