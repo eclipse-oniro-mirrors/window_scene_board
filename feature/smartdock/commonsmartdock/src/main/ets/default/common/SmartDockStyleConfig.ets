@@ -387,8 +387,9 @@ export class SmartDockStyleConfig extends AppListStyleConfig {
   }
 
   private updateDockStylefromSecure(): void {
-    // PC的dock栏不变
+    // PC的dock栏尺寸不变，仅同步圆形图标圆角
     if (DeviceHelper.isPC()) {
+      this.updateCircleIconRadius();
       return;
     }
     let desktopIconChangeSize: number = AppStorage.get<number>('settingIconChange') ?? 0;
@@ -405,9 +406,17 @@ export class SmartDockStyleConfig extends AppListStyleConfig {
     this.mDockRadius = this.mIconRadius > 0 ? this.mIconRadius + this.mBackPlanePadding : this.mIconRadius;
   }
 
+  /**
+   * PC（2in1）dock 图标统一圆形：圆角取图标边长一半，避免布局/主题下发方角圆角
+   */
+  private updateCircleIconRadius(): void {
+    this.mIconRadius = RadiusUtil.calculateRadius(this.mIconSize);
+  }
+
   private updateDockStyle(): void {
-    // PC的dock栏不变
+    // PC的dock栏尺寸不变，仅同步圆形图标圆角
     if (DeviceHelper.isPC()) {
+      this.updateCircleIconRadius();
       return;
     }
 
