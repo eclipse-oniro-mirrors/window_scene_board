@@ -370,7 +370,7 @@ export struct AppCenterAppGrid {
     this.acColumns = this.appGridStyleConfig.mColumns;
     this.acRows = this.appGridStyleConfig.mRows;
     this.iconSize = this.appCenterRst?.mIconSize ?? 0;
-    this.iconRadius = this.appCenterRst?.mIconRadius ?? DEFAULT_ICON_RADIUS;
+    this.iconRadius = this.getCircleIconRadius();
     this.nameSize = this.appCenterRst?.mNameSize ?? 0;
     this.appCenterBubbleMarginTop = this.appCenterRst?.mAppCenterBubbleMarginTop ?? 0;
     this.appCenterBubbleMarginBottom = this.appCenterRst?.mAppCenterBubbleMarginBottom ?? 0;
@@ -412,6 +412,16 @@ export struct AppCenterAppGrid {
     }
   }
 
+  /**
+   * 应用中心图标圆形半径：取图标边长的一半，避免出现方角图标
+   *
+   * @returns 圆形图标半径
+   */
+  private getCircleIconRadius(): number {
+    const iconSize: number = this.appCenterRst?.mIconSize ?? this.iconSize;
+    return iconSize > 0 ? iconSize / StyleConstants.DEFAULT_2 : DEFAULT_ICON_RADIUS;
+  }
+
   onScreenPropertyChange = (screenProperty: SCBScreenProperty, reason: SCBPropertyChangeReason) => {
     if (this.screenProp.screenId !== screenProperty.screenId) {
       log.showInfo(`screen id not equal: ${this.screenProp.screenId} ${screenProperty.screenId}`);
@@ -446,7 +456,7 @@ export struct AppCenterAppGrid {
     this.currentScreenHeight = screenProperty.height;
     this.currentScreenWidth = screenProperty.width;
     this.iconSize = this.appCenterRst?.mIconSize ?? 0;
-    this.iconRadius = this.appCenterRst?.mIconRadius ?? DEFAULT_ICON_RADIUS;
+    this.iconRadius = this.getCircleIconRadius();
     this.nameSize = this.appCenterRst?.mNameSize ?? 0;
     AppCenterDragMgr.getInstance().setIconRadius(this.iconRadius);
   }

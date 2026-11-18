@@ -234,12 +234,29 @@ export struct AppIconCommonView {
   }
 
   private getIconRadius(): number {
-    if (!onLineThemeUtil.isOnlineTheme() || !GridLayoutUtil.isAppInstalled(this.item) ||
-    this.appIconConfig.enableRadiusAll) {
-      return this.iconRadius;
-    } else {
+    // 在线主题下保留图标自身外形，其余场景统一圆形，避免主题、RST 下发的方角圆角把图标画成方形
+    if (onLineThemeUtil.isOnlineTheme() && GridLayoutUtil.isAppInstalled(this.item) &&
+    !this.appIconConfig.enableRadiusAll) {
       return 0;
     }
+    return this.getCircleIconRadius();
+  }
+
+  /**
+   * 圆形图标半径：取图标边长一半；图标尺寸异常时回退配置圆角
+   */
+  private getCircleIconRadius(): number {
+    if (this.iconSize > 0) {
+      return this.iconSize / NumberConstants.CONSTANT_NUMBER_TWO;
+    }
+    return this.iconRadius;
+  }
+
+  /**
+   * 预览态（拖拽、长按、安装中等）图标圆角：与稳态图标保持一致
+   */
+  private getPreviewIconRadius(): number {
+    return this.getCircleIconRadius();
   }
 
   private getIconSize(): number | string {
@@ -567,7 +584,7 @@ export struct AppIconCommonView {
           .height(EditModeUtils.convertWithDesktopScale(this.iconSize))
           .appIconSourceSize()
           .pixelRound({ end: PixelRoundCalcPolicy.FORCE_CEIL, bottom: PixelRoundCalcPolicy.FORCE_CEIL })
-          .borderRadius(EditModeUtils.convertWithDesktopScale(this.iconRadius))
+          .borderRadius(EditModeUtils.convertWithDesktopScale(this.getPreviewIconRadius()))
           .syncLoad(this.isSyncLoad())
           .interpolation(ImageInterpolation.Medium)
           .autoResize(false)
@@ -593,7 +610,7 @@ export struct AppIconCommonView {
           .id(this.iconEvent.getIconMaskCanvas(IconCanvasType.DRAG_MASK)?.getCanvasId())
       }
     }
-    .borderRadius(EditModeUtils.convertWithDesktopScale(this.iconRadius))
+    .borderRadius(EditModeUtils.convertWithDesktopScale(this.getPreviewIconRadius()))
     .clip(true)
   }
 
@@ -605,7 +622,7 @@ export struct AppIconCommonView {
       iconMenuVm: this.iconMenuVm,
       iconMenuEvent: this.iconEvent.getIconMenuEvent() as AppIconMenuEvent,
       iconSize: this.iconSize,
-      iconRadius: this.iconRadius,
+      iconRadius: this.getPreviewIconRadius(),
       dragStart: this.appIconConfig.externCb?.onMenuDragStart,
       appItem: this.item,
       isOuterDesktop: this.appIconConfig.isOuterDesktop,
@@ -674,7 +691,7 @@ export struct AppIconCommonView {
       }
       this.touchMaskInMenuPreview()
     }
-    .borderRadius(this.iconRadius)
+    .borderRadius(this.getPreviewIconRadius())
     .clip(true)
   }
 
@@ -879,7 +896,7 @@ export struct AppIconCommonView {
         appIconId: this.iconData.iconId,
         itemInfo: this.item,
         iconSize: this.iconSize,
-        iconRadius: this.iconRadius,
+        iconRadius: this.getPreviewIconRadius(),
         iconScale: isNeedScale ? this.iconData.iconScale : DEFAULT_SCALE,
         iconOpacity: this.iconData.iconOpacity,
         isAdaptiveExtendLayout: this.appIconConfig.isAdaptiveLayout,
@@ -1029,7 +1046,7 @@ export struct AppIconCommonView {
       AppIconBackplane({
         appIconId: this.iconData.iconId,
         backplaneSize: this.iconSize + this.appIconConfig.iconBackPlaneSize,
-        backplaneRadius: this.iconRadius,
+        backplaneRadius: this.getPreviewIconRadius(),
         backplaneVm: this.backplaneVm,
       });
     }
