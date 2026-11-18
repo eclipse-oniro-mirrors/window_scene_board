@@ -1236,7 +1236,7 @@ export default struct AppItem {
       item: this.appInfo,
       appIconConfig: this.appIconConfig,
       iconSize: this.iconSize,
-      iconRadius: this.iconBorderRadios,
+      iconRadius: this.getDockIconRadius(),
       iconEvent: this.appIconCommonEvent,
       iconData: this.iconData,
       iconContainerModifier: this.appIconContainerModifier,
@@ -1271,6 +1271,20 @@ export default struct AppItem {
     return (config.mIconSize - StyleConstants.DEFAULT_3 * StyleConstants.DEFAULT_2 * this.ratio);
   }
 
+  /**
+   * Dock 图标圆角：统一正圆，半径取图标边长一半
+   *
+   * @returns 图标圆角
+   */
+  private getDockIconRadius(): number {
+    const iconSize: number = this.iconSize > 0 ? this.iconSize :
+      PcSmartDockStyleManager.getStyle(this.screenProp).mIconSize;
+    if (iconSize > 0) {
+      return iconSize / 2;
+    }
+    return this.iconBorderRadios;
+  }
+
   @Builder dropFrameBuilder() {
     Column() {
       Row()
@@ -1280,11 +1294,11 @@ export default struct AppItem {
         .height(PcSmartDockStyleManager.getStyle(this.screenProp).mListItemHeight)
         .borderWidth('1px')
         .borderColor(SmartDockConstants.DOCK_DROP_FRAME_BORDER_COLOR)
-        .borderRadius(this.iconBorderRadios)
+        .borderRadius(this.getDockIconRadius())
         .outlineWidth('1px')
         .outlineColor(this.isDark() ? FixedDockResource.OUTLINE_DART_COLOR :
           FixedDockResource.OUTLINE_LIGHT_COLOR)
-        .outlineRadius(this.iconBorderRadios)
+        .outlineRadius(this.getDockIconRadius())
         .transition(TransitionEffect.IDENTITY)
         .margin({
           top: this.getTopBinaryHeight()
@@ -1318,9 +1332,11 @@ export default struct AppItem {
     let config: PcDockStyleConfig = PcSmartDockStyleManager.getStyle(this.screenProp);
     this.ratio = config.updateConfig(this.screenProp);
     log.showInfo(`aboutToAppear, screenId: ${this.screenId}`);
-    this.iconBorderRadios *= this.ratio;
     this.iconBadgeVm.ratio = this.ratio;
     this.iconSize = config?.mIconSize;
+    // Dock 图标统一圆形：圆角取图标边长一半，避免写死的方角圆角
+    this.iconBorderRadios = this.iconSize > 0 ? this.iconSize / 2 : this.iconBorderRadios * this.ratio;
+    this.iconImageModel = new PcDockAppIconImageModel(this.iconBorderRadios);
     this.pcDockAnimationMgr = PcDockAnimationMgr.getInstance(this.screenId);
     this.dockMenuViewModel.init(this.screenProp.screenId, this.appInfo, this.dockType);
     if (this.isAppCenter(this.appInfo)) {
